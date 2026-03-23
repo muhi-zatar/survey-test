@@ -5,6 +5,7 @@ import { SurveyResponse, Respondent } from '../types/survey';
 interface ThankYouProps {
   response: SurveyResponse;
   respondent: Respondent;
+  onStartNew: () => void;
 }
 
 const ThankYou: React.FC<ThankYouProps> = ({ response, respondent, onStartNew }) => {

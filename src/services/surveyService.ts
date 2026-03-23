@@ -9,9 +9,11 @@ export class SurveyService {
         .insert({
           workplace: respondent.workplace,
           role: respondent.role,
+          country: respondent.country,
           years_experience: respondent.yearsExperience,
           power_systems_fields: respondent.powerSystemsFields,
-          tasks: respondent.tasks
+          tasks: respondent.tasks,
+          email: respondent.email
         })
         .select('id')
         .single();
