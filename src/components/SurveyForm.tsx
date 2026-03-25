@@ -58,6 +58,39 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
     return Object.keys(newErrors).length === 0;
   };
 
+  const downloadSurveyData = (surveyResponse: SurveyResponse) => {
+    const dataToSave = {
+      respondent: {
+        id: respondent.id,
+        role: respondent.role,
+        organization: respondent.organization,
+        yearsOfExperience: respondent.yearsOfExperience,
+        industryType: respondent.industryType,
+        organizationSize: respondent.organizationSize,
+        consent: respondent.consent,
+        tasks: respondent.tasks
+      },
+      survey: {
+        templateType: surveyResponse.templateType,
+        responses: surveyResponse.responses,
+        taskIntegrationLevels: surveyResponse.taskIntegrationLevels,
+        completed: surveyResponse.completed,
+        timestamp: surveyResponse.timestamp
+      }
+    };
+
+    const jsonString = JSON.stringify(dataToSave, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `survey_${respondent.id}_${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleNext = () => {
     if (currentPage === 'questions') {
       setCurrentPage('task-integration');
@@ -72,6 +105,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
         completed: true,
         timestamp: new Date()
       };
+      downloadSurveyData(surveyResponse);
       onComplete(surveyResponse);
     }
   };
