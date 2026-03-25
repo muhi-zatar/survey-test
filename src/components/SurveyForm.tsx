@@ -60,7 +60,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentPage === 'questions') {
       setCurrentPage('task-integration');
     } else if (currentPage === 'task-integration') {
