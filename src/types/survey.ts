@@ -19,6 +19,34 @@ export interface SurveyResponse {
   timestamp: Date;
 }
 
+export interface ConsentData {
+  agreed: boolean;
+  signature: string;
+  date: string;
+}
+
+export interface DemographicData {
+  age: string;
+  gender: string;
+  ethnicity: string;
+  education: string;
+  location: string;
+}
+
+export interface ReferralData {
+  source: string;
+  other?: string;
+  newsletter: boolean;
+  email?: string;
+}
+
+export interface CompleteSurveyData {
+  consent: ConsentData;
+  demographics: DemographicData;
+  survey: SurveyResponse;
+  referral?: ReferralData;
+}
+
 export interface SurveyTemplate {
   id: string;
   name: string;

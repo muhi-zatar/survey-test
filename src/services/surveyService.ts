@@ -1,52 +1,33 @@
 import { supabase } from '../lib/supabase';
-import { Respondent, SurveyResponse } from '../types/survey';
+import { CompleteSurveyData } from '../types/survey';
 
 export class SurveyService {
-  static async saveRespondent(respondent: Respondent): Promise<string> {
-    try {
-      const { data, error } = await supabase
-        .from('respondents')
-        .insert({
-          workplace: respondent.workplace,
-          role: respondent.role,
-          country: respondent.country,
-          years_experience: respondent.yearsExperience,
-          power_systems_fields: respondent.powerSystemsFields,
-          tasks: respondent.tasks,
-          email: respondent.email
-        })
-        .select('id')
-        .single();
-
-      if (error) {
-        console.error('Error saving respondent:', error);
-        throw new Error('Failed to save respondent data');
-      }
-
-      return data.id;
-    } catch (error) {
-      console.error('Error in saveRespondent:', error);
-      throw error;
-    }
-  }
-
-  static async saveSurveyResponse(response: SurveyResponse, databaseRespondentId: string): Promise<void> {
+  static async saveCompleteSurvey(data: CompleteSurveyData): Promise<void> {
     try {
       const { error } = await supabase
         .from('survey_responses')
         .insert({
-          respondent_id: databaseRespondentId,
-          template_type: response.templateType,
-          responses: response.responses,
-          completed: response.completed
+          consent_agreed: data.consent.agreed,
+          consent_signature: data.consent.signature,
+          consent_date: data.consent.date,
+          demographic_age: data.demographics.age,
+          demographic_gender: data.demographics.gender,
+          demographic_ethnicity: data.demographics.ethnicity,
+          demographic_education: data.demographics.education,
+          demographic_location: data.demographics.location,
+          survey_responses: data.survey.responses,
+          referral_source: data.referral?.source,
+          referral_other: data.referral?.other,
+          referral_newsletter: data.referral?.newsletter || false,
+          referral_email: data.referral?.email
         });
 
       if (error) {
-        console.error('Error saving survey response:', error);
-        throw new Error('Failed to save survey response');
+        console.error('Error saving survey data:', error);
+        throw new Error('Failed to save survey data');
       }
     } catch (error) {
-      console.error('Error in saveSurveyResponse:', error);
+      console.error('Error in saveCompleteSurvey:', error);
       throw error;
     }
   }
@@ -55,17 +36,7 @@ export class SurveyService {
     try {
       const { data, error } = await supabase
         .from('survey_responses')
-        .select(`
-          *,
-          respondents (
-            workplace,
-            role,
-            years_experience,
-            power_systems_fields,
-            tasks,
-            created_at
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -76,36 +47,6 @@ export class SurveyService {
       return data;
     } catch (error) {
       console.error('Error in getAllResponses:', error);
-      throw error;
-    }
-  }
-
-  static async getResponsesByTemplate(templateType: string) {
-    try {
-      const { data, error } = await supabase
-        .from('survey_responses')
-        .select(`
-          *,
-          respondents (
-            workplace,
-            role,
-            years_experience,
-            power_systems_fields,
-            tasks,
-            created_at
-          )
-        `)
-        .eq('template_type', templateType)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching responses by template:', error);
-        throw new Error('Failed to fetch survey responses');
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error in getResponsesByTemplate:', error);
       throw error;
     }
   }

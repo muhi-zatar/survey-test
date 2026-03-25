@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
 import { Send, UserPlus, CheckCircle } from 'lucide-react';
+import { ReferralData } from '../types/survey';
 
 interface ReferralFormProps {
-  onComplete: () => void;
+  onComplete: (referralData: ReferralData) => void;
   onSkip: () => void;
 }
 
 const ReferralForm: React.FC<ReferralFormProps> = ({ onComplete, onSkip }) => {
+  const [referralSource, setReferralSource] = useState('');
+  const [referralOther, setReferralOther] = useState('');
+  const [wantNewsletter, setWantNewsletter] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
@@ -28,17 +33,23 @@ Best regards!`;
     setIsSubmitting(true);
 
     try {
-      // Create mailto link with pre-filled content
-      const subject = encodeURIComponent('AI in Power Systems Survey - Research Participation Invitation');
-      const body = encodeURIComponent(message || defaultMessage);
-      const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
-      
-      // Open email client
-      window.open(mailtoLink, '_blank');
-      
+      if (email) {
+        const subject = encodeURIComponent('AI in Power Systems Survey - Research Participation Invitation');
+        const body = encodeURIComponent(message || defaultMessage);
+        const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
+        window.open(mailtoLink, '_blank');
+      }
+
+      const referralData: ReferralData = {
+        source: referralSource || 'Not specified',
+        other: referralOther,
+        newsletter: wantNewsletter,
+        email: wantNewsletter ? newsletterEmail : undefined
+      };
+
       setIsSubmitted(true);
       setTimeout(() => {
-        onComplete();
+        onComplete(referralData);
       }, 2000);
     } catch (error) {
       console.error('Error creating referral:', error);
@@ -88,45 +99,101 @@ Best regards!`;
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Colleague's Email Address *
+            How did you hear about this survey? *
           </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+          <select
+            value={referralSource}
+            onChange={(e) => setReferralSource(e.target.value)}
             required
-            placeholder="colleague@example.com"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
+          >
+            <option value="">Select a source</option>
+            <option value="Colleague">Colleague</option>
+            <option value="Email">Email</option>
+            <option value="Social Media">Social Media</option>
+            <option value="Conference">Conference</option>
+            <option value="University">University</option>
+            <option value="Other">Other</option>
+          </select>
+          {referralSource === 'Other' && (
+            <input
+              type="text"
+              value={referralOther}
+              onChange={(e) => setReferralOther(e.target.value)}
+              placeholder="Please specify"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 mt-2"
+            />
+          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Their Name (optional)
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+          <label className="flex items-start space-x-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={wantNewsletter}
+              onChange={(e) => setWantNewsletter(e.target.checked)}
+              className="w-4 h-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500 mt-1"
+            />
+            <span className="text-sm text-blue-900">
+              I would like to receive updates about this research and related studies
+            </span>
           </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Colleague's name"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
+          {wantNewsletter && (
+            <input
+              type="email"
+              value={newsletterEmail}
+              onChange={(e) => setNewsletterEmail(e.target.value)}
+              placeholder="your.email@example.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 mt-3"
+            />
+          )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Personal Message (optional - we've provided a default message)
-          </label>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={8}
-            placeholder={defaultMessage}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none text-sm"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Leave blank to use our default invitation message
+        <div className="border-t pt-6">
+          <p className="text-sm font-medium text-gray-700 mb-4">
+            Optional: Invite a colleague to participate
           </p>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Colleague's Email Address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="colleague@example.com"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Their Name (optional)
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Colleague's name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Personal Message (optional - we've provided a default message)
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={8}
+              placeholder={defaultMessage}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none text-sm"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Leave blank to use our default invitation message
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -136,7 +203,7 @@ Best regards!`;
             className="flex items-center justify-center space-x-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
           >
             <Send size={16} />
-            <span>{isSubmitting ? 'Opening Email...' : 'Send Invitation'}</span>
+            <span>{isSubmitting ? 'Submitting...' : 'Submit'}</span>
           </button>
           
           <button

@@ -4,17 +4,20 @@ import DemographicForm from './components/DemographicForm';
 import SurveyForm from './components/SurveyForm';
 import ReferralForm from './components/ReferralForm';
 import ThankYou from './components/ThankYou';
-import { Respondent, SurveyResponse } from './types/survey';
+import { Respondent, SurveyResponse, ConsentData, DemographicData, ReferralData } from './types/survey';
 import { surveyTemplates } from './data/surveyTemplates';
+import { SurveyService } from './services/surveyService';
 
 type AppState = 'consent' | 'demographics' | 'survey' | 'referral' | 'complete';
 
 function App() {
   const [currentState, setCurrentState] = useState<AppState>('consent');
+  const [consentData, setConsentData] = useState<ConsentData | null>(null);
   const [respondent, setRespondent] = useState<Respondent | null>(null);
   const [surveyResponse, setSurveyResponse] = useState<SurveyResponse | null>(null);
 
-  const handleConsentAccept = () => {
+  const handleConsentAccept = (consent: ConsentData) => {
+    setConsentData(consent);
     setCurrentState('demographics');
   };
 
@@ -28,16 +31,46 @@ function App() {
     setCurrentState('referral');
   };
 
-  const handleReferralComplete = () => {
+  const handleReferralComplete = async (referralData: ReferralData) => {
+    await saveAllData(referralData);
     setCurrentState('complete');
   };
 
-  const handleReferralSkip = () => {
+  const handleReferralSkip = async () => {
+    await saveAllData();
     setCurrentState('complete');
+  };
+
+  const saveAllData = async (referralData?: ReferralData) => {
+    if (!consentData || !respondent || !surveyResponse) {
+      console.error('Missing required data to save');
+      return;
+    }
+
+    const demographicData: DemographicData = {
+      age: respondent.yearsExperience,
+      gender: respondent.role,
+      ethnicity: respondent.workplace,
+      education: respondent.country,
+      location: respondent.country
+    };
+
+    try {
+      await SurveyService.saveCompleteSurvey({
+        consent: consentData,
+        demographics: demographicData,
+        survey: surveyResponse,
+        referral: referralData
+      });
+      console.log('Survey data saved successfully');
+    } catch (error) {
+      console.error('Failed to save survey data:', error);
+    }
   };
 
   const handleStartNew = () => {
     setCurrentState('consent');
+    setConsentData(null);
     setRespondent(null);
     setSurveyResponse(null);
   };
@@ -49,6 +82,7 @@ function App() {
   const handleAbortSurvey = () => {
     if (window.confirm('Are you sure you want to abort the survey? All progress will be lost.')) {
       setCurrentState('consent');
+      setConsentData(null);
       setRespondent(null);
       setSurveyResponse(null);
     }

@@ -1,8 +1,9 @@
 import React from 'react';
 import { CheckCircle, FileText, Users, Shield } from 'lucide-react';
+import { ConsentData } from '../types/survey';
 
 interface ConsentFormProps {
-  onAccept: () => void;
+  onAccept: (consentData: ConsentData) => void;
 }
 
 const ConsentForm: React.FC<ConsentFormProps> = ({ onAccept }) => {
@@ -106,7 +107,11 @@ const ConsentForm: React.FC<ConsentFormProps> = ({ onAccept }) => {
 
       <div className="text-center">
         <button
-          onClick={onAccept}
+          onClick={() => onAccept({
+            agreed: true,
+            signature: 'Electronic Consent',
+            date: new Date().toISOString()
+          })}
           className="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-4 px-8 rounded-lg transition duration-200 shadow-lg hover:shadow-xl text-lg"
         >
           I Agree to Participate
