@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { SurveyTemplate, SurveyQuestion, SurveyResponse, Respondent } from '../types/survey';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { SurveyService } from '../services/surveyService';
 
 interface SurveyFormProps {
   template: SurveyTemplate;
@@ -18,7 +17,6 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [taskIntegrationLevels, setTaskIntegrationLevels] = useState<Record<string, { current: string; desired: string; comments: string }>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const scaleQuestions = template.questions.filter(q => q.type === 'scale');
   const openEndedQuestions = template.questions.filter(q => q.type === 'textarea');
@@ -60,24 +58,12 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (currentPage === 'questions') {
       setCurrentPage('task-integration');
     } else if (currentPage === 'task-integration') {
       setCurrentPage('open-ended');
     } else {
-      // Complete survey and save to database
-      await handleSurveySubmission();
-    }
-  };
-
-  const handleSurveySubmission = async () => {
-    setIsSubmitting(true);
-    try {
-      // Save respondent to database first
-      const databaseRespondentId = await SurveyService.saveRespondent(respondent);
-      
-      // Create survey response
       const surveyResponse: SurveyResponse = {
         respondentId: respondent.id,
         templateType: template.id,
@@ -86,17 +72,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
         completed: true,
         timestamp: new Date()
       };
-      
-      // Save survey response to database
-      await SurveyService.saveSurveyResponse(surveyResponse, databaseRespondentId);
-      
-      // Complete the survey
       onComplete(surveyResponse);
-    } catch (error) {
-      console.error('Error saving survey:', error);
-      alert('There was an error saving your survey. Please try again.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -409,15 +385,14 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
 
           <button
             onClick={handleNext}
-            disabled={isSubmitting}
             className="flex items-center space-x-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
           >
             <span>
-              {currentPage === 'open-ended' 
-                ? (isSubmitting ? 'Saving...' : 'Complete Survey')
+              {currentPage === 'open-ended'
+                ? 'Complete Survey'
                 : 'Next'}
             </span>
-            {!isSubmitting && <ArrowRight size={16} />}
+            <ArrowRight size={16} />
           </button>
         </div>
       </div>
