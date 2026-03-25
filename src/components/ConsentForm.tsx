@@ -23,6 +23,15 @@ const ConsentForm: React.FC<ConsentFormProps> = ({ onAccept }) => {
         </p>
       </div>
 
+      <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-lg mb-6">
+        <p className="text-yellow-900 font-semibold text-center">
+          Please submit this survey only once
+        </p>
+        <p className="text-yellow-800 text-sm text-center mt-1">
+          Your progress is saved automatically as you complete each section
+        </p>
+      </div>
+
       <div className="space-y-6 mb-8">
         <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
           <div className="flex items-start space-x-3">

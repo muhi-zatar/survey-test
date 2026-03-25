@@ -86,14 +86,6 @@ const ThankYou: React.FC<ThankYouProps> = ({ response, respondent, onStartNew })
           <Download size={16} />
           <span>Download Response</span>
         </button>
-        
-        <button
-          onClick={onStartNew}
-          className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
-        >
-          <RotateCcw size={16} />
-          <span>Submit Another Response</span>
-        </button>
       </div>
 
       <div className="mt-8 text-sm text-gray-500">

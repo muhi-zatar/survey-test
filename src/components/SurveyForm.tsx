@@ -218,6 +218,18 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
           </p>
         </div>
 
+        <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+          <p className="font-semibold mb-2 text-blue-900">AI Integration Levels Reference:</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
+            {Object.entries(aiIntegrationLevels).map(([num, label]) => (
+              <div key={num} className="flex items-center space-x-2">
+                <span className="font-medium">{num}:</span>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full border-collapse border border-gray-300">
             <thead>
@@ -271,19 +283,6 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ template, respondent, onComplet
               })}
             </tbody>
           </table>
-        </div>
-
-        {/* Scale legend */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="font-semibold mb-2">AI Integration Levels:</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-            {Object.entries(aiIntegrationLevels).map(([num, label]) => (
-              <div key={num} className="flex items-center space-x-2">
-                <span className="font-medium">{num}:</span>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     );

@@ -5,18 +5,17 @@ import { ReferralData } from '../types/survey';
 interface ReferralFormProps {
   onComplete: (referralData: ReferralData) => void;
   onSkip: () => void;
+  onBack: () => void;
 }
 
-const ReferralForm: React.FC<ReferralFormProps> = ({ onComplete, onSkip }) => {
+const ReferralForm: React.FC<ReferralFormProps> = ({ onComplete, onSkip, onBack }) => {
   const [referralSource, setReferralSource] = useState('');
   const [referralOther, setReferralOther] = useState('');
   const [wantNewsletter, setWantNewsletter] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState('');
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [emails, setEmails] = useState<string[]>(['']);
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const defaultMessage = `Hi there!
 
@@ -28,16 +27,32 @@ You can access the survey here: ${window.location.origin}
 
 Best regards!`;
 
+  const addEmailField = () => {
+    setEmails([...emails, '']);
+  };
+
+  const removeEmailField = (index: number) => {
+    setEmails(emails.filter((_, i) => i !== index));
+  };
+
+  const updateEmail = (index: number, value: string) => {
+    const newEmails = [...emails];
+    newEmails[index] = value;
+    setEmails(newEmails);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      if (email) {
+      const validEmails = emails.filter(email => email.trim() !== '');
+
+      if (validEmails.length > 0) {
         const subject = encodeURIComponent('AI in Power Systems Survey - Research Participation Invitation');
         const body = encodeURIComponent(message || defaultMessage);
-        const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
-        window.open(mailtoLink, '_blank');
+        const mailtoLink = `mailto:${validEmails.join(',')}?subject=${subject}&body=${body}`;
+        window.location.href = mailtoLink;
       }
 
       const referralData: ReferralData = {
@@ -47,34 +62,15 @@ Best regards!`;
         email: wantNewsletter ? newsletterEmail : undefined
       };
 
-      setIsSubmitted(true);
       setTimeout(() => {
         onComplete(referralData);
-      }, 2000);
+      }, 1000);
     } catch (error) {
       console.error('Error creating referral:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (isSubmitted) {
-    return (
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
-        <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Thank You for Sharing!
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Your email client should have opened with a pre-filled message. 
-          Thank you for helping us reach more power systems professionals!
-        </p>
-        <div className="text-sm text-gray-500">
-          Redirecting to final thank you page...
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
@@ -151,35 +147,42 @@ Best regards!`;
 
         <div className="border-t pt-6">
           <p className="text-sm font-medium text-gray-700 mb-4">
-            Optional: Invite a colleague to participate
+            Optional: Invite colleagues to participate
           </p>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Colleague's Email Address
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700">
+              Colleague Email Addresses
             </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="colleague@example.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            />
+            {emails.map((email, index) => (
+              <div key={index} className="flex gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => updateEmail(index, e.target.value)}
+                  placeholder="colleague@example.com"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                />
+                {emails.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeEmailField(index)}
+                    className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md transition"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addEmailField}
+              className="text-sm text-yellow-600 hover:text-yellow-700 font-medium"
+            >
+              + Add another email
+            </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Their Name (optional)
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Colleague's name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-            />
-          </div>
-
-          <div>
+          <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Personal Message (optional - we've provided a default message)
             </label>
@@ -198,6 +201,14 @@ Best regards!`;
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center justify-center space-x-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
+          >
+            <span>Back to Survey</span>
+          </button>
+
+          <button
             type="submit"
             disabled={isSubmitting}
             className="flex items-center justify-center space-x-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 shadow-lg hover:shadow-xl"
@@ -205,7 +216,7 @@ Best regards!`;
             <Send size={16} />
             <span>{isSubmitting ? 'Submitting...' : 'Submit'}</span>
           </button>
-          
+
           <button
             type="button"
             onClick={onSkip}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ConsentForm from './components/ConsentForm';
 import DemographicForm from './components/DemographicForm';
 import SurveyForm from './components/SurveyForm';
@@ -11,10 +11,47 @@ import { SurveyService } from './services/surveyService';
 type AppState = 'consent' | 'demographics' | 'survey' | 'referral' | 'complete';
 
 function App() {
-  const [currentState, setCurrentState] = useState<AppState>('consent');
-  const [consentData, setConsentData] = useState<ConsentData | null>(null);
-  const [respondent, setRespondent] = useState<Respondent | null>(null);
-  const [surveyResponse, setSurveyResponse] = useState<SurveyResponse | null>(null);
+  const [currentState, setCurrentState] = useState<AppState>(() => {
+    const cached = localStorage.getItem('surveyState');
+    return cached ? JSON.parse(cached) : 'consent';
+  });
+
+  const [consentData, setConsentData] = useState<ConsentData | null>(() => {
+    const cached = localStorage.getItem('consentData');
+    return cached ? JSON.parse(cached) : null;
+  });
+
+  const [respondent, setRespondent] = useState<Respondent | null>(() => {
+    const cached = localStorage.getItem('respondentData');
+    return cached ? JSON.parse(cached) : null;
+  });
+
+  const [surveyResponse, setSurveyResponse] = useState<SurveyResponse | null>(() => {
+    const cached = localStorage.getItem('surveyResponse');
+    return cached ? JSON.parse(cached) : null;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('surveyState', JSON.stringify(currentState));
+  }, [currentState]);
+
+  useEffect(() => {
+    if (consentData) {
+      localStorage.setItem('consentData', JSON.stringify(consentData));
+    }
+  }, [consentData]);
+
+  useEffect(() => {
+    if (respondent) {
+      localStorage.setItem('respondentData', JSON.stringify(respondent));
+    }
+  }, [respondent]);
+
+  useEffect(() => {
+    if (surveyResponse) {
+      localStorage.setItem('surveyResponse', JSON.stringify(surveyResponse));
+    }
+  }, [surveyResponse]);
 
   const handleConsentAccept = (consent: ConsentData) => {
     setConsentData(consent);
@@ -63,16 +100,25 @@ function App() {
         referral: referralData
       });
       console.log('Survey data saved successfully');
+      clearAllData();
     } catch (error) {
       console.error('Failed to save survey data:', error);
     }
   };
 
-  const handleStartNew = () => {
+  const clearAllData = () => {
+    localStorage.removeItem('surveyState');
+    localStorage.removeItem('consentData');
+    localStorage.removeItem('respondentData');
+    localStorage.removeItem('surveyResponse');
     setCurrentState('consent');
     setConsentData(null);
     setRespondent(null);
     setSurveyResponse(null);
+  };
+
+  const handleStartNew = () => {
+    clearAllData();
   };
 
   const handleBackToDemographics = () => {
@@ -81,10 +127,7 @@ function App() {
 
   const handleAbortSurvey = () => {
     if (window.confirm('Are you sure you want to abort the survey? All progress will be lost.')) {
-      setCurrentState('consent');
-      setConsentData(null);
-      setRespondent(null);
-      setSurveyResponse(null);
+      clearAllData();
     }
   };
 
@@ -126,6 +169,7 @@ function App() {
         <ReferralForm
           onComplete={handleReferralComplete}
           onSkip={handleReferralSkip}
+          onBack={() => setCurrentState('survey')}
         />
       )}
       
